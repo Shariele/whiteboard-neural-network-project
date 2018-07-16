@@ -40,7 +40,7 @@ module.exports = {
 			var net = require('net');
 			var response = {};
 
-			var client = net.createConnection("/tmp/icp-test");
+			var client = net.createConnection("/tmp/node-communication");
 			
 
 			client.on("connect", function() {

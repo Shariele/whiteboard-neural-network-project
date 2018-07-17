@@ -1,1 +1,3 @@
 gcc -Wall main.c -o main  `mysql_config --cflags --libs`
+
+

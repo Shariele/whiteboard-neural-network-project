@@ -1,0 +1,10 @@
+echo "*** compiling each module"
+gcc -Wall -c Dmnist.c
+
+echo "*** compiling each module DONE"
+
+echo "*** compiling project"
+gcc -o driverMnist Dmnist.c
+echo "*** compiling project DONE"
+
+

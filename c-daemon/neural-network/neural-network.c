@@ -29,17 +29,33 @@ float biasMax = 10;
 
 // Implicit initialization to 0
 static float	
-		W1[INPUT][HIDDEN],
-		W2[HIDDEN][HIDDEN],
-		W3[HIDDEN][OUTPUT],
-		H1[HIDDEN],
-		BH1[HIDDEN],
-		H2[HIDDEN],
-		BH2[HIDDEN],
-		Out[OUTPUT],
-		BOUT[OUTPUT];
+		// W1[INPUT][HIDDEN],
+		// W2[HIDDEN][HIDDEN],
+		// W3[HIDDEN][OUTPUT],
+		// H1[HIDDEN],
+		// BH1[HIDDEN],
+		// H2[HIDDEN],
+		// BH2[HIDDEN],
+		// Out[OUTPUT],
+		// BOUT[OUTPUT];
 
-float testInput[INPUT] = {1, 1, 1, 1};
+		// Test variables
+		W1[HIDDEN][INPUT] 		= {{0.5, 2, 0.5, 0.5}, {0.5, 0.5, 3, 8}},
+		W2[HIDDEN][HIDDEN] 		= {{0.5, 0.5}, {0, 0.5}},
+		W3[HIDDEN][OUTPUT]		= {{6, 2}, {0, 1}},
+		H1[HIDDEN],
+		BH1[HIDDEN]				= {1, 1},
+		H2[HIDDEN],
+		BH2[HIDDEN]				= {1, 1},
+		Out[OUTPUT],
+		BOUT[OUTPUT],
+		correctOut[OUTPUT];
+
+
+
+float testInput[INPUT] = {1, 3, 1, 5};
+int ShouldBe = 0;
+
 
 
 
@@ -80,33 +96,86 @@ static float sigmoid(float x){
      return return_value;
 }
 
-static float matrixVectorMult(float *vec, int i, int j, float mat[][HIDDEN], int matSize, float tempSum){
-	if(DEBUG)	printf("tempSum: %f\n", tempSum);
+static float matrixVectorMult(int i, int j, int matSize, float *vec, float mat[][matSize], float tempSum){
+	if(DEBUG)	printf("tempSum[%d] before calc: %f\n", i, tempSum);
+	if(DEBUG)	printf("matsize: %d\n", matSize);
+	if(DEBUG)	printf("j: %d\n", j);
 
-	tempSum += mat[j][i]*vec[j];
+	tempSum += mat[i][j]*vec[j];
 
-	return j == matSize		?	tempSum
-		:	matrixVectorMult(vec, i, ++j, mat, matSize, tempSum);		
+	if(DEBUG)	printf("tempSum %d after calc: %f\n\n", i, tempSum);
+
+	return j == matSize-1		?	tempSum
+		:	matrixVectorMult(i, ++j, matSize, vec, mat, tempSum);		
 }
 
-static void sumLayer(float sourceL[], int sourceSize, float weigth[][HIDDEN], float destL[], int destSize, float bias[]){
+static void sumLayer(int sourceSize, int wSize, int destSize, float *sourceL, float weigth[destSize][wSize], float *destL,  float *bias){
 	
 	for(int i = 0; i < destSize; i++){
-		destL[i] = sigmoid(matrixVectorMult(sourceL, i, 0, weigth, HIDDEN, 0.0) - bias[i]);
+		destL[i] = sigmoid(matrixVectorMult(i, 0, wSize, sourceL, weigth, 0.0) - bias[i]);
+		// destL[i] = matrixVectorMult(i, 0, wSize, sourceL, weigth, 0.0) - bias[i];
 
-		if(DEBUG)	printf("destL[%d]: %f \t bias[%d]: %f\n", i, destL[i], i, bias[i]);
+		if(DEBUG)	printf("\ndestL[%d]: %f \t bias[%d]: %f\n\n", i, destL[i], i, bias[i]);
 	}
 }
+
+static void backPropagate(int wantNr, int size){
+	int i;
+	float nudges[OUTPUT];
+
+	for(i = 0; i < size; i++){
+		if(i != wantNr)
+			nudges[i] = -pow((Out[i] - correctOut[i]), 2);
+		else
+			nudges[i] = pow((Out[i] - correctOut[i]), 2);
+
+		printf("\nNudges[%d]: %f\n", i, nudges[i]);
+	}
+}
+
+static void initBackPropagation(struct matrices *data){
+	int i, iGreatestVal;
+	float greatestVal = -999999;
+
+	// Find the greatest value and corresponding index for later comparison.
+	for(i = 0; i < OUTPUT; i++){
+		if(Out[i] > greatestVal){
+			greatestVal = Out[i];	iGreatestVal = i;
+		}
+	}
+	// First check, was NN wrong? If not, all is good. If the index with the greatest value is equal to the number we want,
+	// then the NN was right.
+	if(iGreatestVal != data->number){
+		if(DEBUG) printf("\nThe NN got the WRONG number. It guessed %d when it should be %d. Retraining!\n", iGreatestVal, data->number);
+
+		correctOut[data->number] = 1;	//This is the number we want. All else is 0.
+		backPropagate(data->number, OUTPUT);
+	}else{
+		printf("\nThe NN got the CORRECT number which was: %d \n", iGreatestVal);
+	}
+}
+
+
+
+// static float computateCost(){
+// 	correctOut[data->number] = 1;	//This is what we want. All else is 0.
+// 		// Calculate cost
+// 		for (i = 0; i < OUTPUT; i++){
+// 			cost += pow((Out[i] - correctOut[i]), 2);
+// 		}
+
+// 		printf("\nCost for NN: %f\n", cost);
+// }
 
 static void init(struct matrices *data){
 
 	srand((unsigned int)time(NULL));
 
-	genMatrix(W1, INPUT, HIDDEN);
-	genMatrix(W2, HIDDEN, HIDDEN);
-	genMatrix(W3, HIDDEN, OUTPUT);
-	genBias(BH1, HIDDEN);
-	genBias(BH2, HIDDEN);
+	// genMatrix(W1, INPUT, HIDDEN);
+	// genMatrix(W2, HIDDEN, HIDDEN);
+	// genMatrix(W3, HIDDEN, OUTPUT);
+	// genBias(BH1, HIDDEN);
+	// genBias(BH2, HIDDEN);
 
 }
 
@@ -116,10 +185,18 @@ static void init(struct matrices *data){
 /**************************************************************************/
 void neuralNetwork(struct matrices *data) {
 	init(data);
+	// Change testInput to Data later.
+	if(DEBUG)	printf("**********************************\n");
 	if(DEBUG)	printf("To H1:\n");
-	sumLayer(testInput, INPUT, W1, H1, HIDDEN, BH1);
+	sumLayer(INPUT, INPUT, HIDDEN, testInput, W1, H1, BH1);
+	if(DEBUG)	printf("**********************************\n");
+	if(DEBUG)	printf("**********************************\n");
 	if(DEBUG)	printf("To H2:\n");
-	sumLayer(H1, HIDDEN, W2, H2, HIDDEN, BH2);
+	sumLayer(HIDDEN, HIDDEN, HIDDEN, H1, W2, H2, BH2);
+	if(DEBUG)	printf("**********************************\n");
+	if(DEBUG)	printf("**********************************\n");
 	if(DEBUG)	printf("To Out:\n");
-	sumLayer(H2, HIDDEN, W3, Out, HIDDEN, BOUT);				// No bias on out nodes, BOUT is 0
+	sumLayer(HIDDEN, HIDDEN, OUTPUT, H2, W3, Out, BOUT);				// No bias on out nodes, BOUT is only 0
+
+	initBackPropagation(data);
 }

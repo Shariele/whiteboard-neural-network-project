@@ -16,7 +16,7 @@
 int main(int argc, char **argv){
         mnist_data *data;                              //.data och .label
         unsigned int cnt;
-        int ret = 0, x, y, i, currData = 0;
+        int ret = 0, x, y, i, currData = 1;
 
         // Returns 0 when all is good
         if ((ret = mnist_load("traindata/train-images.idx3-ubyte", "traindata/train-labels.idx1-ubyte", &data, &cnt))) {

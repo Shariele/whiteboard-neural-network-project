@@ -1,11 +1,11 @@
 echo "*** compiling each module"
 gcc -Wall -c neural-network.c -lm
-gcc -Wall -c Dneural-network.c
+
 
 echo "*** compiling each module DONE"
 
 echo "*** compiling project"
-gcc -o driverNN Dneural-network.c neural-network.c -lm
+gcc -o driverNN neural-network.c -lm
 echo "*** compiling project DONE"
 
 

@@ -3,15 +3,10 @@
 /**************************************************************************/
 #include "globalDef.h"
 
-// Needed for "mnist-master/mnist.h"
-#define USE_MNIST_LOADER
-#define MNIST_DOUBLE
-#include "mnist-master/mnist.h"
-
 /**************************************************************************/
 /*	PUBLIC METHODS														  */
 /**************************************************************************/
-// void neuralNetwork(struct mnist_data *data);
+void neuralNetwork(struct matrices *data);
 
 /**************************************************************************/
 /*	TYPE DEFINITIONS & VARIABLES										  */

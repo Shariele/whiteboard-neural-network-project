@@ -7,7 +7,11 @@ and then goes backwards when the NN has a result.
 
 
 TODO:
+
 Get backpropagation to work.
+
 Database for for storage of NN values so it doesn't need to be retrained if server goes down.
+
 Better visual appearance on website.
+
 Tidy up code and make some parts cleaner and smaller.
